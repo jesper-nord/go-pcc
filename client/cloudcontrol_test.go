@@ -1,9 +1,9 @@
 package cloudcontrol_test
 
 import (
+	cloudcontrol "github.com/jesper-nord/go-pcc/client"
+	"github.com/jesper-nord/go-pcc/types"
 	"github.com/stretchr/testify/assert"
-	cloudcontrol "gopcc/client"
-	"gopcc/types"
 	"net/http"
 	"net/http/httptest"
 	"os"

@@ -1,4 +1,4 @@
-module gopcc
+module github.com/jesper-nord/go-pcc
 
 go 1.19
 

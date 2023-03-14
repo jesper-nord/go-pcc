@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
+	cloudcontrol "github.com/jesper-nord/go-pcc/client"
+	"github.com/jesper-nord/go-pcc/types"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
-	cloudcontrol "gopcc/client"
-	"gopcc/types"
 	"os"
 )
 
 var (
-	configFlag   = flag.String("config", "./gopcc.yaml", "Path of YAML configuration file")
+	configFlag   = flag.String("config", "./go-pcc.yaml", "Path of YAML configuration file")
 	debugFlag    = flag.Bool("debug", false, "Show debug output")
 	deviceFlag   = flag.String("device", "", "Device to issue command to")
 	historyFlag  = flag.String("history", "", "Display history: day,week,month,year")
