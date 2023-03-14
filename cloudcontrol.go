@@ -1,18 +1,15 @@
-// Package cloudcontrol package is a Go package to control
-// Panasonic Comfort Cloud devices.
 package cloudcontrol
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	pt "github.com/hacktobeer/go-panasonic/types"
+	"github.com/labstack/gommon/log"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
-
-	pt "github.com/hacktobeer/go-panasonic/types"
-	log "github.com/sirupsen/logrus"
 )
 
 // Client is a Panasonic Comfort Cloud client.
@@ -27,90 +24,20 @@ func intPtr(i int) *int {
 	return &i
 }
 
-// intPtr is a helper function that returns a pointer to an bool.
-func boolPtr(b bool) *bool {
-	return &b
-}
-
 // SetDevice sets the device GUID on the client.
 func (c *Client) SetDevice(deviceGUID string) {
 	c.DeviceGUID = deviceGUID
 }
 
-// setHeaders sets the required http request headers.
-func (c *Client) setHeaders(req *http.Request) {
-	if c.Utoken != "" {
-		req.Header.Set("X-User-Authorization", c.Utoken)
-	}
-	req.Header.Set("X-APP-TYPE", "1")
-	req.Header.Set("X-APP-VERSION", "1.19.0")
-	req.Header.Set("User-Agent", "G-RAC")
-	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Connection", "Keep-Alive")
-
-	log.Debugf("HTTP headers set to: %#v", req.Header)
-}
-
-// doPostRequest will send a HTTP POST request.
-func (c *Client) doPostRequest(url string, postbody []byte) ([]byte, error) {
-	req, err := http.NewRequest("POST", c.Server+url, bytes.NewBuffer(postbody))
-	c.setHeaders(req)
-
-	log.Debugf("POST request URL: %#v\n", req.URL)
-	log.Debugf("POST request body: %#v\n", string(postbody))
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	log.Debugf("POST response body: %s", string(body))
-
-	if resp.StatusCode > 200 {
-		return body, fmt.Errorf("HTTP Error: %s", resp.Status)
-	}
-
-	return body, nil
-}
-
-// doGetRequest will send a HTTP GET request.
-func (c *Client) doGetRequest(url string) ([]byte, error) {
-	req, err := http.NewRequest("GET", c.Server+url, nil)
-	c.setHeaders(req)
-
-	log.Debugf("GET request URL: %#v\n", req.URL)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, _ := ioutil.ReadAll(resp.Body)
-
-	log.Debugf("GET response body: %s", string(body))
-
-	if resp.StatusCode > 200 {
-		return body, fmt.Errorf("HTTP Error: %s", resp.Status)
-	}
-
-	return body, nil
-}
-
 // NewClient creates a new Panasonic Comfort Cloud client.
-func NewClient(server string) Client {
+func NewClient() Client {
+	return NewClientWithUrl(pt.URLServer)
+}
+
+// NewClientWithUrl creates a new client with given base URL.
+func NewClientWithUrl(url string) Client {
 	client := Client{}
-	if server != "" {
-		client.Server = server
-	} else {
-		client.Server = pt.URLServer
-	}
+	client.Server = url
 
 	log.Debugf("Created new client for %s", client.Server)
 
@@ -142,7 +69,7 @@ func (c *Client) CreateSession(username string, password string) ([]byte, error)
 	}
 
 	session := pt.Session{}
-	err = json.Unmarshal([]byte(body), &session)
+	err = json.Unmarshal(body, &session)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
 	}
@@ -159,7 +86,7 @@ func (c *Client) GetGroups() (pt.Groups, error) {
 		return pt.Groups{}, fmt.Errorf("error: %v %s", err, body)
 	}
 	groups := pt.Groups{}
-	err = json.Unmarshal([]byte(body), &groups)
+	err = json.Unmarshal(body, &groups)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
 	}
@@ -169,7 +96,7 @@ func (c *Client) GetGroups() (pt.Groups, error) {
 
 // ListDevices lists all available devices.
 func (c *Client) ListDevices() ([]string, error) {
-	available := []string{}
+	var available []string
 	groups, err := c.GetGroups()
 	if err != nil {
 		return nil, err
@@ -179,7 +106,6 @@ func (c *Client) ListDevices() ([]string, error) {
 			available = append(available, device.DeviceGUID)
 		}
 	}
-
 	return available, nil
 }
 
@@ -191,7 +117,7 @@ func (c *Client) GetDeviceStatus() (pt.Device, error) {
 	}
 
 	device := pt.Device{}
-	err = json.Unmarshal([]byte(body), &device)
+	err = json.Unmarshal(body, &device)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
 	}
@@ -214,7 +140,7 @@ func (c *Client) GetDeviceHistory(timeFrame int) (pt.History, error) {
 	}
 
 	history := pt.History{}
-	err = json.Unmarshal([]byte(body), &history)
+	err = json.Unmarshal(body, &history)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
 	}
@@ -285,4 +211,67 @@ func (c *Client) SetMode(mode int) ([]byte, error) {
 	command.Parameters.OperationMode = intPtr(mode)
 
 	return c.control(command)
+}
+
+func (c *Client) doPostRequest(url string, postbody []byte) ([]byte, error) {
+	req, err := http.NewRequest("POST", c.Server+url, bytes.NewBuffer(postbody))
+	c.setHeaders(req)
+
+	log.Debugf("POST request URL: %#v\n", req.URL)
+	log.Debugf("POST request body: %#v\n", string(postbody))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	log.Debugf("POST response body: %s", string(body))
+
+	if resp.StatusCode > 200 {
+		return body, fmt.Errorf("HTTP Error: %s", resp.Status)
+	}
+
+	return body, nil
+}
+
+func (c *Client) doGetRequest(url string) ([]byte, error) {
+	req, err := http.NewRequest("GET", c.Server+url, nil)
+	c.setHeaders(req)
+
+	log.Debugf("GET request URL: %#v\n", req.URL)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+
+	log.Debugf("GET response body: %s", string(body))
+
+	if resp.StatusCode > 200 {
+		return body, fmt.Errorf("HTTP Error: %s", resp.Status)
+	}
+
+	return body, nil
+}
+
+func (c *Client) setHeaders(req *http.Request) {
+	if c.Utoken != "" {
+		req.Header.Set("X-User-Authorization", c.Utoken)
+	}
+	req.Header.Set("X-APP-TYPE", "1")
+	req.Header.Set("X-APP-VERSION", "1.19.0")
+	req.Header.Set("User-Agent", "G-RAC")
+	req.Header.Set("Accept", "application/json; charset=utf-8")
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Connection", "Keep-Alive")
+
+	log.Debugf("HTTP headers set to: %#v", req.Header)
 }

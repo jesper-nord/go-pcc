@@ -3,13 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-
 	"github.com/hacktobeer/go-panasonic/cloudcontrol"
 	pt "github.com/hacktobeer/go-panasonic/types"
-	log "github.com/sirupsen/logrus"
-
+	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var (
@@ -48,15 +46,6 @@ func main() {
 
 	flag.Parse()
 
-	if *quietFlag {
-		log.SetLevel(log.PanicLevel)
-	}
-
-	if *debugFlag {
-		log.SetLevel(log.DebugLevel)
-		log.Debug("Logging set to debug level")
-	}
-
 	if *versionFlag {
 		fmt.Printf("version: %s\n", version)
 		fmt.Printf("commit: %s\n", commit)
@@ -64,75 +53,78 @@ func main() {
 		os.Exit(0)
 	}
 
+	log.SetLevel(log.INFO)
+
+	if *quietFlag {
+		log.SetLevel(log.ERROR)
+	}
+
+	if *debugFlag {
+		log.SetLevel(log.DEBUG)
+		log.Debug("log set to debug level")
+	}
+
 	readConfig()
 	user := viper.GetString("username")
 	pass := viper.GetString("password")
-	server := viper.GetString("server")
 	token := viper.GetString("token")
 
-	client := cloudcontrol.NewClient(server)
+	client := cloudcontrol.NewClient()
 
-	if token != "" {
+	if token == "" {
+		createAndSaveSession(user, pass, &client)
+	} else {
 		if body, err := client.ValidateSession(token); err != nil {
-			log.Debugf("ValidateSession Error: %s", string(body))
-			if user != "" && pass != "" {
-				_, err := client.CreateSession(user, pass)
-				if err != nil {
-					log.Fatalln(err)
-				}
-				viper.Set("token", client.Utoken)
-				viper.WriteConfig()
-				log.Debug("New session token requested and written to config")
-			} else {
-				log.Fatalln("No username and password given, can't login.")
-			}
+			log.Debugf("invalid session token: %s", string(body))
+			createAndSaveSession(user, pass, &client)
 		} else {
-			log.Debugln("Session token passed validation check")
+			log.Debug("session token is valid")
 		}
 	}
 
 	if *listFlag {
-		log.Infoln("Listing available devices.....")
+		log.Debug("listing available devices")
 		devices, err := client.ListDevices()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
 
-		if len(devices) != 0 {
-			log.Infof("%d device(s) found:\n", len(devices))
-			for _, device := range devices {
-				fmt.Println(device)
-			}
-		} else {
-			log.Fatalln("error: No devices for configured account")
+		if len(devices) == 0 {
+			log.Fatal("found no devices for configured account")
+		}
+
+		log.Infof("%d device(s) found:\n", len(devices))
+		for _, device := range devices {
+			fmt.Println(device)
 		}
 		os.Exit(0)
 	}
 
-	// Read device from flag
-	if *deviceFlag != "" {
-		log.Debugf("Device set to %s", *deviceFlag)
-		client.SetDevice(*deviceFlag)
-	}
-	// Read device from configuration file
+	// read device from configuration file
 	configDevice := viper.GetString("device")
 	if configDevice != "" {
-		log.Debugf("Device set to %s", configDevice)
+		log.Debugf("using device %s from config file", configDevice)
 		client.SetDevice(configDevice)
 	}
-	// Exit if no devices are configured
+
+	// read device from flag (higher priority)
+	if *deviceFlag != "" {
+		log.Debugf("using device %s from flag", *deviceFlag)
+		client.SetDevice(*deviceFlag)
+	}
+
 	if client.DeviceGUID == "" {
-		log.Fatalln("error: No device configured, please use -device flag or configuration file")
+		log.Fatal("no device configured, use -device flag or set device in config file")
 	}
 
 	if *statusFlag {
-		log.Infoln("Fetching status.....")
+		log.Debug("fetching device status")
 		status, err := client.GetDeviceStatus()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
 
-		fmt.Printf("GUID: %s\n", status.DeviceGUID)
+		fmt.Printf("Device GUID: %s\n", status.DeviceGUID)
 		fmt.Println("Capabilities:")
 		fmt.Printf("Auto mode: %t\n", status.AutoMode)
 		fmt.Printf("Heat mode: %t\n", status.HeatMode)
@@ -153,10 +145,10 @@ func main() {
 	}
 
 	if *historyFlag != "" {
-		log.Infof("Fetching historical data for this %s.....\n", *historyFlag)
+		log.Debugf("fetching historical data for %s\n", *historyFlag)
 		history, err := client.GetDeviceHistory(pt.HistoryDataMode[*historyFlag])
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
 		fmt.Println("#,AverageSettingTemp,AverageInsideTemp,AverageOutsideTemp")
 		for _, v := range history.HistoryEntries {
@@ -165,34 +157,57 @@ func main() {
 	}
 
 	if *onFlag {
-		log.Infoln("Turning device on.....")
+		log.Debug("turning device on")
 		_, err := client.TurnOn()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
+		fmt.Println("device turned on")
 	}
 
 	if *offFlag {
-		log.Infoln("Turning device off....")
+		log.Debug("turning device off")
 		_, err := client.TurnOff()
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
+		fmt.Println("device turned off")
 	}
 
 	if *tempFlag != 0 {
-		log.Infof("Setting temperature to %v degrees Celsius", *tempFlag)
+		log.Debugf("setting temperature to %v degrees", *tempFlag)
 		_, err := client.SetTemperature(*tempFlag)
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
+		fmt.Printf("temperature set to %v degrees", *tempFlag)
 	}
 
 	if *modeFlag != "" {
-		log.Infof("Setting mode to %s", *modeFlag)
+		log.Debugf("setting mode to %s", *modeFlag)
 		_, err := client.SetMode(pt.Modes[*modeFlag])
 		if err != nil {
-			log.Fatalln(err)
+			log.Fatal(err)
 		}
+		fmt.Printf("mode set to %s", *modeFlag)
 	}
+}
+
+func createAndSaveSession(user string, pass string, client *cloudcontrol.Client) {
+	if user == "" || pass == "" {
+		log.Fatal("missing username and/or password in config file")
+	}
+
+	_, err := client.CreateSession(user, pass)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	viper.Set("token", client.Utoken)
+	err = viper.WriteConfig()
+	if err != nil {
+		log.Fatal("unable to write session token to config file")
+	}
+
+	log.Debugf("new session token created and written to config file: %s", client.Utoken)
 }

@@ -1,36 +1,16 @@
 package cloudcontrol_test
 
 import (
-	"fmt"
+	"github.com/magiconair/properties/assert"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	cloudcontrol "github.com/hacktobeer/go-panasonic"
 	pt "github.com/hacktobeer/go-panasonic/types"
 )
 
-// Example on how to use this package:
-func Example() {
-	// Create a new Panasonic Comfort Cloud client
-	client := cloudcontrol.NewClient("")
-	// Initiate a session with your username and password
-	client.CreateSession("username", "password")
-	// List the available devices in your account
-	devices, _ := client.ListDevices()
-	// Set the device we want to control
-	client.SetDevice(devices[0])
-	// Show the detailed device status
-	status, _ := client.GetDeviceStatus()
-	// Show the inside temperature measured by the device
-	fmt.Println(status.Parameters.InsideTemperature)
-	// Set the temperature on the device
-	client.SetTemperature(19.5)
-}
-
-//var server *httptest.Server
 var (
 	client      cloudcontrol.Client
 	sessionBody = `{"uToken":"token12345","language":0,"result":0}`
@@ -43,9 +23,77 @@ func TestMain(m *testing.M) {
 	server := serverMock()
 	defer server.Close()
 
-	client = cloudcontrol.NewClient(server.URL)
+	client = cloudcontrol.NewClientWithUrl(server.URL)
 
 	os.Exit(m.Run())
+}
+
+func TestNewClient(t *testing.T) {
+	client := cloudcontrol.NewClient()
+	got := client.Server
+
+	assert.Equal(t, got, pt.URLServer)
+}
+
+func TestSetDevice(t *testing.T) {
+	device := "device12345"
+
+	var client cloudcontrol.Client
+	client.SetDevice(device)
+
+	want := device
+	got := client.DeviceGUID
+
+	assert.Equal(t, got, want)
+}
+
+func TestTurnOn(t *testing.T) {
+	client.CreateSession("", "")
+	body, err := client.TurnOn()
+	if err != nil {
+		t.Errorf("TestTurnOn() returned an error: %v", err)
+	}
+
+	want := pt.SuccessResponse
+	got := string(body)
+
+	assert.Equal(t, got, want)
+}
+
+func TestGetGroups(t *testing.T) {
+	client.CreateSession("", "")
+	groups, _ := client.GetGroups()
+
+	want := "My House"
+	got := groups.Groups[0].GroupName
+
+	assert.Equal(t, got, want)
+	assert.Equal(t, 1, len(groups.Groups[0].Devices))
+}
+
+func TestGetDeviceHistory(t *testing.T) {
+	client.CreateSession("", "")
+	history, err := client.GetDeviceHistory(pt.HistoryDataMode["day"])
+	if err != nil {
+		t.Error(err)
+	}
+
+	got := len(history.HistoryEntries)
+	want := 24
+
+	assert.Equal(t, got, want)
+}
+
+func TestCreateSession(t *testing.T) {
+	username := "test@test.com"
+	password := "secret1234"
+
+	client.CreateSession(username, password)
+
+	got := client.Utoken
+	want := "token12345"
+
+	assert.Equal(t, got, want)
 }
 
 func serverMock() *httptest.Server {
@@ -74,93 +122,4 @@ func groupsMock(w http.ResponseWriter, r *http.Request) {
 
 func controlMock(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write([]byte(controlBody))
-}
-
-func TestNewClient(t *testing.T) {
-	cases := []struct {
-		input string
-		want  string
-	}{
-		{
-			input: "http:/customserver.com",
-			want:  "http:/customserver.com",
-		},
-		{
-			input: "",
-			want:  pt.URLServer,
-		},
-	}
-	for _, c := range cases {
-		client := cloudcontrol.NewClient(c.input)
-		got := client.Server
-		if diff := cmp.Diff(c.want, got); diff != "" {
-			t.Errorf("TestNewClient() mismatch (-want +got):\n%s", diff)
-		}
-	}
-}
-
-func TestSetDevice(t *testing.T) {
-	device := "device12345"
-
-	var client cloudcontrol.Client
-	client.SetDevice(device)
-
-	want := device
-	got := client.DeviceGUID
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("TestSetDevice() mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestTurnOn(t *testing.T) {
-	client.CreateSession("", "")
-	body, err := client.TurnOn()
-	if err != nil {
-		t.Errorf("TestTurnOn() returned an error: %v", err)
-	}
-	want := string(pt.SuccessResponse)
-	got := string(body)
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("TestTurnOn() mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestGetGroups(t *testing.T) {
-	client.CreateSession("", "")
-	groups, _ := client.GetGroups()
-	want := "My House"
-	got := groups.Groups[0].GroupName
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("TestGetGroups() mismatch (-want +got):\n%s", diff)
-	}
-	if len(groups.Groups[0].Devices) != 1 {
-		t.Errorf("TestGetGroups() mismatch Devices, want 1, got %d", len(groups.Groups[0].Devices))
-	}
-}
-
-func TestGetDeviceHistory(t *testing.T) {
-	client.CreateSession("", "")
-	history, err := client.GetDeviceHistory(pt.HistoryDataMode["day"])
-	if err != nil {
-		t.Error(err)
-	}
-
-	got := len(history.HistoryEntries)
-	want := 24
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("TestGetDeviceHistory() length mismatch (-want +got):\n%s", diff)
-	}
-}
-
-func TestCreateSession(t *testing.T) {
-	username := "test@test.com"
-	password := "secret1234"
-
-	client.CreateSession(username, password)
-
-	got := client.Utoken
-	want := "token12345"
-	if diff := cmp.Diff(want, got); diff != "" {
-		t.Errorf("TestCreateSession() token mismatch (-want +got):\n%s", diff)
-	}
 }

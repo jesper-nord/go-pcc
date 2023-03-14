@@ -7,6 +7,7 @@
 *.test
 *.out
 go.work
+bin/
 
 ## IntelliJ
 .idea
