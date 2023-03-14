@@ -26,6 +26,12 @@ var ModesReverse = map[int]string{
 	4: "fan",
 }
 
+var EcoMode = map[string]int{
+	"auto":     0,
+	"powerful": 1,
+	"quiet":    2,
+}
+
 var EcoModeReverse = map[int]string{
 	0: "auto",
 	1: "powerful",

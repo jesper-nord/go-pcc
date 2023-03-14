@@ -17,6 +17,7 @@ var (
 	historyFlag = flag.String("history", "", "Display history: day,week,month,year")
 	listFlag    = flag.Bool("list", false, "List available devices")
 	modeFlag    = flag.String("mode", "", "Set mode: auto,heat,cool,dry,fan")
+	ecoModeFlag = flag.String("ecomode", "", "Set eco mode: auto,powerful,quiet")
 	offFlag     = flag.Bool("off", false, "Turn device off")
 	onFlag      = flag.Bool("on", false, "Turn device on")
 	quietFlag   = flag.Bool("quiet", false, "Don't output any log messages")
@@ -34,6 +35,8 @@ func readConfig() {
 }
 
 func main() {
+	log.SetHeader(`${time_rfc3339} | ${level} | ${short_file} |`)
+
 	if len(os.Args) < 2 {
 		flag.PrintDefaults()
 		os.Exit(1)
@@ -60,18 +63,18 @@ func main() {
 	client := cloudcontrol.NewClient()
 
 	if token == "" {
-		createAndSaveSession(user, pass, &client)
+		createAndSaveSessionToken(user, pass, &client)
 	} else {
 		if body, err := client.ValidateSession(token); err != nil {
-			log.Debugf("invalid session token: %s", string(body))
-			createAndSaveSession(user, pass, &client)
+			log.Infof("invalid session token: %s", string(body))
+			createAndSaveSessionToken(user, pass, &client)
 		} else {
 			log.Debug("session token is valid")
 		}
 	}
 
 	if *listFlag {
-		log.Debug("listing available devices")
+		log.Info("listing available devices")
 		devices, err := client.ListDevices()
 		if err != nil {
 			log.Fatal(err)
@@ -106,13 +109,12 @@ func main() {
 	}
 
 	if *statusFlag {
-		log.Debug("fetching device status")
+		log.Info("fetching device status")
 		status, err := client.GetDeviceStatus()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		fmt.Println("Current status:")
 		fmt.Printf("Status: %s\n", types.Operate[status.Parameters.Operate])
 		fmt.Printf("Mode: %s\n", types.ModesReverse[status.Parameters.OperationMode])
 		fmt.Printf("Temperature: %0.1f\n", status.Parameters.TemperatureSet)
@@ -122,7 +124,7 @@ func main() {
 	}
 
 	if *historyFlag != "" {
-		log.Debugf("fetching historical data for %s\n", *historyFlag)
+		log.Infof("fetching historical data for %s\n", *historyFlag)
 		history, err := client.GetDeviceHistory(types.HistoryDataMode[*historyFlag])
 		if err != nil {
 			log.Fatal(err)
@@ -134,7 +136,7 @@ func main() {
 	}
 
 	if *onFlag {
-		log.Debug("turning device on")
+		log.Info("turning device on")
 		_, err := client.TurnOn()
 		if err != nil {
 			log.Fatal(err)
@@ -143,7 +145,7 @@ func main() {
 	}
 
 	if *offFlag {
-		log.Debug("turning device off")
+		log.Info("turning device off")
 		_, err := client.TurnOff()
 		if err != nil {
 			log.Fatal(err)
@@ -152,7 +154,7 @@ func main() {
 	}
 
 	if *tempFlag != 0 {
-		log.Debugf("setting temperature to %v degrees", *tempFlag)
+		log.Infof("setting temperature to %v degrees", *tempFlag)
 		_, err := client.SetTemperature(*tempFlag)
 		if err != nil {
 			log.Fatal(err)
@@ -161,16 +163,25 @@ func main() {
 	}
 
 	if *modeFlag != "" {
-		log.Debugf("setting mode to %s", *modeFlag)
+		log.Infof("setting mode to %s", *modeFlag)
 		_, err := client.SetMode(types.Modes[*modeFlag])
 		if err != nil {
 			log.Fatal(err)
 		}
 		fmt.Printf("mode set to %s", *modeFlag)
 	}
+
+	if *ecoModeFlag != "" {
+		log.Infof("setting eco mode to %s", *ecoModeFlag)
+		_, err := client.SetEcoMode(types.EcoMode[*ecoModeFlag])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("eco mode set to %s", *ecoModeFlag)
+	}
 }
 
-func createAndSaveSession(user string, pass string, client *cloudcontrol.Client) {
+func createAndSaveSessionToken(user string, pass string, client *cloudcontrol.Client) {
 	if user == "" || pass == "" {
 		log.Fatal("missing username and/or password in config file")
 	}

@@ -27,11 +27,11 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestNewClient(t *testing.T) {
+func TestNewClient_SetsDefaultServerUrl(t *testing.T) {
 	client := cloudcontrol.NewClient()
-	got := client.Server
+	actual := client.Server
 
-	assert.Equal(t, got, types.BaseServerUrl)
+	assert.Equal(t, types.BaseServerUrl, actual)
 }
 
 func TestSetDevice(t *testing.T) {
@@ -40,10 +40,10 @@ func TestSetDevice(t *testing.T) {
 	var client cloudcontrol.Client
 	client.SetDevice(device)
 
-	want := device
-	got := client.DeviceGUID
+	expected := device
+	actual := client.DeviceGUID
 
-	assert.Equal(t, got, want)
+	assert.Equal(t, expected, actual)
 }
 
 func TestTurnOn(t *testing.T) {
@@ -53,20 +53,40 @@ func TestTurnOn(t *testing.T) {
 		t.Errorf("TestTurnOn() returned an error: %v", err)
 	}
 
-	want := types.SuccessResponse
-	got := string(body)
+	expected := types.SuccessResponse
+	actual := string(body)
 
-	assert.Equal(t, got, want)
+	assert.Equal(t, expected, actual)
+}
+
+func TestSetMode(t *testing.T) {
+	client.CreateSession("", "")
+	body, _ := client.SetMode(1)
+
+	expected := types.SuccessResponse
+	actual := string(body)
+
+	assert.Equal(t, expected, actual)
+}
+
+func TestSetEcoMode(t *testing.T) {
+	client.CreateSession("", "")
+	body, _ := client.SetEcoMode(1)
+
+	expected := types.SuccessResponse
+	actual := string(body)
+
+	assert.Equal(t, expected, actual)
 }
 
 func TestGetGroups(t *testing.T) {
 	client.CreateSession("", "")
 	groups, _ := client.GetGroups()
 
-	want := "My House"
-	got := groups.Groups[0].GroupName
+	expected := "My House"
+	actual := groups.Groups[0].GroupName
 
-	assert.Equal(t, got, want)
+	assert.Equal(t, expected, actual)
 	assert.Equal(t, 1, len(groups.Groups[0].Devices))
 }
 
@@ -77,10 +97,10 @@ func TestGetDeviceHistory(t *testing.T) {
 		t.Error(err)
 	}
 
-	got := len(history.HistoryEntries)
-	want := 24
+	expected := 24
+	actual := len(history.HistoryEntries)
 
-	assert.Equal(t, got, want)
+	assert.Equal(t, expected, actual)
 }
 
 func TestCreateSession(t *testing.T) {
@@ -89,10 +109,10 @@ func TestCreateSession(t *testing.T) {
 
 	client.CreateSession(username, password)
 
-	got := client.Utoken
-	want := "token12345"
+	expected := "token12345"
+	actual := client.Utoken
 
-	assert.Equal(t, got, want)
+	assert.Equal(t, expected, actual)
 }
 
 func serverMock() *httptest.Server {

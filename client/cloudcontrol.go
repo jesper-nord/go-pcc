@@ -148,23 +148,6 @@ func (c *Client) GetDeviceHistory(timeFrame int) (types.History, error) {
 	return history, nil
 }
 
-// control sends commands to the Panasonic cloud to control a device.
-func (c *Client) control(command types.Command) ([]byte, error) {
-	postBody, _ := json.Marshal(command)
-
-	log.Debugf("Command: %s", postBody)
-
-	body, err := c.doPostRequest(types.UrlPathControl, postBody)
-	if err != nil {
-		return nil, fmt.Errorf("error: %v %s", err, body)
-	}
-	if string(body) != types.SuccessResponse {
-		return body, fmt.Errorf("error body: %v %s", err, body)
-	}
-
-	return body, nil
-}
-
 // SetTemperature will set the temperature for a device.
 func (c *Client) SetTemperature(temperature float64) ([]byte, error) {
 	command := types.Command{
@@ -213,6 +196,35 @@ func (c *Client) SetMode(mode int) ([]byte, error) {
 	return c.control(command)
 }
 
+// SetEcoMode will set the device to the requested eco mode.
+func (c *Client) SetEcoMode(mode int) ([]byte, error) {
+	command := types.Command{
+		DeviceGUID: c.DeviceGUID,
+		Parameters: types.DeviceControlParameters{},
+	}
+
+	command.Parameters.EcoMode = intPtr(mode)
+
+	return c.control(command)
+}
+
+// control sends commands to the Panasonic cloud to control a device.
+func (c *Client) control(command types.Command) ([]byte, error) {
+	postBody, _ := json.Marshal(command)
+
+	log.Debugf("Command: %s", postBody)
+
+	body, err := c.doPostRequest(types.UrlPathControl, postBody)
+	if err != nil {
+		return nil, fmt.Errorf("error: %v %s", err, body)
+	}
+	if string(body) != types.SuccessResponse {
+		return body, fmt.Errorf("error body: %v %s", err, body)
+	}
+
+	return body, nil
+}
+
 func (c *Client) doPostRequest(url string, postbody []byte) ([]byte, error) {
 	req, err := http.NewRequest("POST", c.Server+url, bytes.NewBuffer(postbody))
 	c.setHeaders(req)
@@ -242,7 +254,7 @@ func (c *Client) doGetRequest(url string) ([]byte, error) {
 	req, err := http.NewRequest("GET", c.Server+url, nil)
 	c.setHeaders(req)
 
-	log.Debugf("GET request URL: %#v\n", req.URL)
+	log.Debugf("GET request URL: %#v", req.URL)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
