@@ -11,18 +11,18 @@ import (
 )
 
 var (
-	configFlag  = flag.String("config", "./gopcc.yaml", "Path of YAML configuration file")
-	debugFlag   = flag.Bool("debug", false, "Show debug output")
-	deviceFlag  = flag.String("device", "", "Device to issue command to")
-	historyFlag = flag.String("history", "", "Display history: day,week,month,year")
-	listFlag    = flag.Bool("list", false, "List available devices")
-	modeFlag    = flag.String("mode", "", "Set mode: auto,heat,cool,dry,fan")
-	ecoModeFlag = flag.String("ecomode", "", "Set eco mode: auto,powerful,quiet")
-	offFlag     = flag.Bool("off", false, "Turn device off")
-	onFlag      = flag.Bool("on", false, "Turn device on")
-	quietFlag   = flag.Bool("quiet", false, "Don't output any log messages")
-	statusFlag  = flag.Bool("status", false, "Display current status of device")
-	tempFlag    = flag.Float64("temp", 0, "Set the temperature (in Celsius)")
+	configFlag   = flag.String("config", "./gopcc.yaml", "Path of YAML configuration file")
+	debugFlag    = flag.Bool("debug", false, "Show debug output")
+	deviceFlag   = flag.String("device", "", "Device to issue command to")
+	historyFlag  = flag.String("history", "", "Display history: day,week,month,year")
+	listFlag     = flag.Bool("list", false, "List available devices")
+	modeFlag     = flag.String("mode", "", "Set mode: auto,heat,cool,dry,fan")
+	ecoModeFlag  = flag.String("ecomode", "", "Set eco mode: auto,powerful,quiet")
+	offFlag      = flag.Bool("off", false, "Turn device off")
+	onFlag       = flag.Bool("on", false, "Turn device on")
+	suppressFlag = flag.Bool("suppress", false, "Suppress log messages")
+	statusFlag   = flag.Bool("status", false, "Display current status of device")
+	tempFlag     = flag.Float64("temp", 0, "Set the temperature (in Celsius)")
 )
 
 func readConfig() {
@@ -46,8 +46,8 @@ func main() {
 
 	log.SetLevel(log.INFO)
 
-	if *quietFlag {
-		log.SetLevel(log.ERROR)
+	if *suppressFlag {
+		log.SetLevel(log.OFF)
 	}
 
 	if *debugFlag {

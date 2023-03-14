@@ -1,40 +1,33 @@
-# go-panasonic
+# go-pcc
 
 ## Introduction
-```go-panasonic``` is a Golang package and cli tool to control Panasonic equipment connected through the Panasonic Comfort Cloud (PCC). This library and cli tool have much of the same functionality as the Panasonic Comfort Cloud App.
+`go-pcc` is a CLI to control Panasonic equipment connected through the Panasonic Comfort Cloud (PCC).
 
-Why? I got a bit bored with the App, it was too slow for me and I could not automate anything. So this package and cli tool solves that problem.
-
-## CLI tool
-You need to create a configuration file with the below content. The tool tries to load the default file ```gopcc.yaml``` but it can also be passed with the cli flag ```-config [filepath]```.
+## CLI usage
+You need to create a configuration file with the below content. The tool tries to load the default file `./gopcc.yaml` but it can also be passed with the cli flag `-config [filepath]`.
 ```
 username: [your PCC username]
 password: [your PCC password]
-device: [Panasonic device name, see -list command]
 ```
 
-List all available Panasonic devices for account and manually add one of them to the configuration file.
+### List devices
+List all available Panasonic devices for account
 ```
-$ go-panasonic -list
-```
-
-Some more examples
-```
-$ go-panasonic -status
-$ go-panasonic -temp 19.5
-$ go-panasonic -off
-$ go-panasonic -on
-$ go-panasonic -mode heat
-$ go-panasonic -history week
+$ gopcc -list
 ```
 
+### Examples
 ```
-$ go-panasonic -h
-$ go-panasonic -version
+$ gopcc -status
+$ gopcc -temp 19.5
+$ gopcc -on
+$ gopcc -off
+$ gopcc -mode heat
+$ gopcc -ecomode powerful
+$ gopcc -history week
 ```
 
-Download the latest releases [here](https://github.com/hacktobeer/go-panasonic/releases). Releases are build for Linux (ARM as well), OSX and Windows.
+For all available commands, see `gopcc -help`.
 
-# Package
-
-The ```cloudcontrol``` package can be used to write your own tools to control devices in the Panasonic Comfort Cloud. Package documentation and exampe code can be found [here](https://pkg.go.dev/github.com/hacktobeer/go-panasonic#readme-package).
+### Logging
+Enable debug logging with the `-debug` flag. Disable all logging with the `-suppress` flag.
