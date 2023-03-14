@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	pt "github.com/hacktobeer/go-panasonic/types"
 	"github.com/labstack/gommon/log"
+	"gopcc/types"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,7 +31,7 @@ func (c *Client) SetDevice(deviceGUID string) {
 
 // NewClient creates a new Panasonic Comfort Cloud client.
 func NewClient() Client {
-	return NewClientWithUrl(pt.URLServer)
+	return NewClientWithUrl(types.BaseServerUrl)
 }
 
 // NewClientWithUrl creates a new client with given base URL.
@@ -47,7 +47,7 @@ func NewClientWithUrl(url string) Client {
 // ValidateSession checks if the session token is still valid.
 func (c *Client) ValidateSession(token string) ([]byte, error) {
 	c.Utoken = token
-	body, err := c.doGetRequest(pt.URLValidate1)
+	body, err := c.doGetRequest(types.UrlPathValidate)
 	if err != nil {
 		return body, fmt.Errorf("error: %v %s", err, body)
 	}
@@ -63,12 +63,12 @@ func (c *Client) CreateSession(username string, password string) ([]byte, error)
 		"password": password,
 	})
 
-	body, err := c.doPostRequest(pt.URLLogin, postBody)
+	body, err := c.doPostRequest(types.UrlPathLogin, postBody)
 	if err != nil {
 		return nil, fmt.Errorf("error: %v %s", err, body)
 	}
 
-	session := pt.Session{}
+	session := types.Session{}
 	err = json.Unmarshal(body, &session)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
@@ -80,12 +80,12 @@ func (c *Client) CreateSession(username string, password string) ([]byte, error)
 }
 
 // GetGroups gets all Panasonic Comfort Cloud groups associated to this account.
-func (c *Client) GetGroups() (pt.Groups, error) {
-	body, err := c.doGetRequest(pt.URLGroups)
+func (c *Client) GetGroups() (types.Groups, error) {
+	body, err := c.doGetRequest(types.UrlPathGroups)
 	if err != nil {
-		return pt.Groups{}, fmt.Errorf("error: %v %s", err, body)
+		return types.Groups{}, fmt.Errorf("error: %v %s", err, body)
 	}
-	groups := pt.Groups{}
+	groups := types.Groups{}
 	err = json.Unmarshal(body, &groups)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
@@ -110,13 +110,13 @@ func (c *Client) ListDevices() ([]string, error) {
 }
 
 // GetDeviceStatus gets all details for a specific device.
-func (c *Client) GetDeviceStatus() (pt.Device, error) {
-	body, err := c.doGetRequest(pt.URLDeviceStatus + url.QueryEscape(c.DeviceGUID))
+func (c *Client) GetDeviceStatus() (types.Device, error) {
+	body, err := c.doGetRequest(types.UrlPathDeviceStatus + url.QueryEscape(c.DeviceGUID))
 	if err != nil {
-		return pt.Device{}, fmt.Errorf("error: %v %s", err, body)
+		return types.Device{}, fmt.Errorf("error: %v %s", err, body)
 	}
 
-	device := pt.Device{}
+	device := types.Device{}
 	err = json.Unmarshal(body, &device)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
@@ -126,7 +126,7 @@ func (c *Client) GetDeviceStatus() (pt.Device, error) {
 }
 
 // GetDeviceHistory will fetch historical device data from Panasonic.
-func (c *Client) GetDeviceHistory(timeFrame int) (pt.History, error) {
+func (c *Client) GetDeviceHistory(timeFrame int) (types.History, error) {
 	postBody, _ := json.Marshal(map[string]string{
 		"dataMode":   fmt.Sprint(timeFrame),
 		"date":       time.Now().Format("20060102"),
@@ -134,12 +134,12 @@ func (c *Client) GetDeviceHistory(timeFrame int) (pt.History, error) {
 		"osTimezone": "+01:00",
 	})
 
-	body, err := c.doPostRequest(pt.URLHistory, postBody)
+	body, err := c.doPostRequest(types.UrlPathHistory, postBody)
 	if err != nil {
-		return pt.History{}, fmt.Errorf("error: %v %s", err, body)
+		return types.History{}, fmt.Errorf("error: %v %s", err, body)
 	}
 
-	history := pt.History{}
+	history := types.History{}
 	err = json.Unmarshal(body, &history)
 	if err != nil {
 		log.Fatalf("unmarshal error %v: %s", err, body)
@@ -149,16 +149,16 @@ func (c *Client) GetDeviceHistory(timeFrame int) (pt.History, error) {
 }
 
 // control sends commands to the Panasonic cloud to control a device.
-func (c *Client) control(command pt.Command) ([]byte, error) {
+func (c *Client) control(command types.Command) ([]byte, error) {
 	postBody, _ := json.Marshal(command)
 
 	log.Debugf("Command: %s", postBody)
 
-	body, err := c.doPostRequest(pt.URLControl, postBody)
+	body, err := c.doPostRequest(types.UrlPathControl, postBody)
 	if err != nil {
 		return nil, fmt.Errorf("error: %v %s", err, body)
 	}
-	if string(body) != pt.SuccessResponse {
+	if string(body) != types.SuccessResponse {
 		return body, fmt.Errorf("error body: %v %s", err, body)
 	}
 
@@ -167,9 +167,9 @@ func (c *Client) control(command pt.Command) ([]byte, error) {
 
 // SetTemperature will set the temperature for a device.
 func (c *Client) SetTemperature(temperature float64) ([]byte, error) {
-	command := pt.Command{
+	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
-		Parameters: pt.DeviceControlParameters{
+		Parameters: types.DeviceControlParameters{
 			TemperatureSet: &temperature,
 		},
 	}
@@ -179,9 +179,9 @@ func (c *Client) SetTemperature(temperature float64) ([]byte, error) {
 
 // TurnOn will switch the device on.
 func (c *Client) TurnOn() ([]byte, error) {
-	command := pt.Command{
+	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
-		Parameters: pt.DeviceControlParameters{
+		Parameters: types.DeviceControlParameters{
 			Operate: intPtr(1),
 		},
 	}
@@ -191,9 +191,9 @@ func (c *Client) TurnOn() ([]byte, error) {
 
 // TurnOff will switch the device off.
 func (c *Client) TurnOff() ([]byte, error) {
-	command := pt.Command{
+	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
-		Parameters: pt.DeviceControlParameters{
+		Parameters: types.DeviceControlParameters{
 			Operate: intPtr(0),
 		},
 	}
@@ -203,9 +203,9 @@ func (c *Client) TurnOff() ([]byte, error) {
 
 // SetMode will set the device to the requested AC mode.
 func (c *Client) SetMode(mode int) ([]byte, error) {
-	command := pt.Command{
+	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
-		Parameters: pt.DeviceControlParameters{},
+		Parameters: types.DeviceControlParameters{},
 	}
 
 	command.Parameters.OperationMode = intPtr(mode)

@@ -1,14 +1,13 @@
 package cloudcontrol_test
 
 import (
-	"github.com/magiconair/properties/assert"
+	"github.com/stretchr/testify/assert"
+	cloudcontrol "gopcc/client"
+	"gopcc/types"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-
-	cloudcontrol "github.com/hacktobeer/go-panasonic"
-	pt "github.com/hacktobeer/go-panasonic/types"
 )
 
 var (
@@ -32,7 +31,7 @@ func TestNewClient(t *testing.T) {
 	client := cloudcontrol.NewClient()
 	got := client.Server
 
-	assert.Equal(t, got, pt.URLServer)
+	assert.Equal(t, got, types.BaseServerUrl)
 }
 
 func TestSetDevice(t *testing.T) {
@@ -54,7 +53,7 @@ func TestTurnOn(t *testing.T) {
 		t.Errorf("TestTurnOn() returned an error: %v", err)
 	}
 
-	want := pt.SuccessResponse
+	want := types.SuccessResponse
 	got := string(body)
 
 	assert.Equal(t, got, want)
@@ -73,7 +72,7 @@ func TestGetGroups(t *testing.T) {
 
 func TestGetDeviceHistory(t *testing.T) {
 	client.CreateSession("", "")
-	history, err := client.GetDeviceHistory(pt.HistoryDataMode["day"])
+	history, err := client.GetDeviceHistory(types.HistoryDataMode["day"])
 	if err != nil {
 		t.Error(err)
 	}
@@ -98,10 +97,10 @@ func TestCreateSession(t *testing.T) {
 
 func serverMock() *httptest.Server {
 	handler := http.NewServeMux()
-	handler.HandleFunc(pt.URLLogin, sessionMock)
-	handler.HandleFunc(pt.URLGroups, groupsMock)
-	handler.HandleFunc(pt.URLControl, controlMock)
-	handler.HandleFunc(pt.URLHistory, historyMock)
+	handler.HandleFunc(types.UrlPathLogin, sessionMock)
+	handler.HandleFunc(types.UrlPathGroups, groupsMock)
+	handler.HandleFunc(types.UrlPathControl, controlMock)
+	handler.HandleFunc(types.UrlPathHistory, historyMock)
 
 	srv := httptest.NewServer(handler)
 

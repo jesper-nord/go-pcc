@@ -3,15 +3,15 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/hacktobeer/go-panasonic/cloudcontrol"
-	pt "github.com/hacktobeer/go-panasonic/types"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
+	cloudcontrol "gopcc/client"
+	"gopcc/types"
 	"os"
 )
 
 var (
-	configFlag  = flag.String("config", "gopcc.yaml", "Path of YAML configuration file")
+	configFlag  = flag.String("config", "./gopcc.yaml", "Path of YAML configuration file")
 	debugFlag   = flag.Bool("debug", false, "Show debug output")
 	deviceFlag  = flag.String("device", "", "Device to issue command to")
 	historyFlag = flag.String("history", "", "Display history: day,week,month,year")
@@ -113,17 +113,17 @@ func main() {
 		}
 
 		fmt.Println("Current status:")
-		fmt.Printf("Status: %s\n", pt.Operate[status.Parameters.Operate])
-		fmt.Printf("Mode: %s\n", pt.ModesReverse[status.Parameters.OperationMode])
+		fmt.Printf("Status: %s\n", types.Operate[status.Parameters.Operate])
+		fmt.Printf("Mode: %s\n", types.ModesReverse[status.Parameters.OperationMode])
 		fmt.Printf("Temperature: %0.1f\n", status.Parameters.TemperatureSet)
 		fmt.Printf("Outside temperature: %0.1f\n", status.Parameters.OutsideTemperature)
-		fmt.Printf("Fan speed: %s\n", pt.FanSpeedReverse[status.Parameters.FanSpeed])
-		fmt.Printf("Eco mode: %s\n", pt.EcoModeReverse[status.Parameters.EcoMode])
+		fmt.Printf("Fan speed: %s\n", types.FanSpeedReverse[status.Parameters.FanSpeed])
+		fmt.Printf("Eco mode: %s\n", types.EcoModeReverse[status.Parameters.EcoMode])
 	}
 
 	if *historyFlag != "" {
 		log.Debugf("fetching historical data for %s\n", *historyFlag)
-		history, err := client.GetDeviceHistory(pt.HistoryDataMode[*historyFlag])
+		history, err := client.GetDeviceHistory(types.HistoryDataMode[*historyFlag])
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -162,7 +162,7 @@ func main() {
 
 	if *modeFlag != "" {
 		log.Debugf("setting mode to %s", *modeFlag)
-		_, err := client.SetMode(pt.Modes[*modeFlag])
+		_, err := client.SetMode(types.Modes[*modeFlag])
 		if err != nil {
 			log.Fatal(err)
 		}

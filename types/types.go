@@ -1,18 +1,5 @@
 package types
 
-// Exported constants
-const (
-	URLServer       = "https://accsmart.panasonic.com"
-	URLLogin        = "/auth/login"
-	URLGroups       = "/device/group"
-	URLDeviceStatus = "/deviceStatus/now/"
-	URLHistory      = "/deviceHistoryData"
-	URLControl      = "/deviceStatus/control"
-	URLValidate1    = "/auth/agreement/status/1"
-	SuccessResponse = `{"result":0}`
-	FailureResponse = `{"result":1}`
-)
-
 // HistoryDataMode maps out the time intervals to fetch history data
 var HistoryDataMode = map[string]int{
 	"day":   0,
