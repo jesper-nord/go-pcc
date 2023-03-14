@@ -11,11 +11,7 @@ import (
 )
 
 var (
-	commit  = "development"
-	date    = "development"
-	version = "development"
-
-	configFlag  = flag.String("config", "gopanasonic.yaml", "Path of YAML configuration file")
+	configFlag  = flag.String("config", "gopcc.yaml", "Path of YAML configuration file")
 	debugFlag   = flag.Bool("debug", false, "Show debug output")
 	deviceFlag  = flag.String("device", "", "Device to issue command to")
 	historyFlag = flag.String("history", "", "Display history: day,week,month,year")
@@ -26,7 +22,6 @@ var (
 	quietFlag   = flag.Bool("quiet", false, "Don't output any log messages")
 	statusFlag  = flag.Bool("status", false, "Display current status of device")
 	tempFlag    = flag.Float64("temp", 0, "Set the temperature (in Celsius)")
-	versionFlag = flag.Bool("version", false, "Show build version information")
 )
 
 func readConfig() {
@@ -45,13 +40,6 @@ func main() {
 	}
 
 	flag.Parse()
-
-	if *versionFlag {
-		fmt.Printf("version: %s\n", version)
-		fmt.Printf("commit: %s\n", commit)
-		fmt.Printf("date: %s\n", date)
-		os.Exit(0)
-	}
 
 	log.SetLevel(log.INFO)
 
@@ -124,24 +112,13 @@ func main() {
 			log.Fatal(err)
 		}
 
-		fmt.Printf("Device GUID: %s\n", status.DeviceGUID)
-		fmt.Println("Capabilities:")
-		fmt.Printf("Auto mode: %t\n", status.AutoMode)
-		fmt.Printf("Heat mode: %t\n", status.HeatMode)
-		fmt.Printf("Dry mode: %t\n", status.DryMode)
-		fmt.Printf("Cool mode: %t\n", status.CoolMode)
-		fmt.Printf("Fan mode: %t\n", status.FanMode)
-		fmt.Printf("Fan Speed mode: %d\n", status.FanSpeedMode)
-		fmt.Printf("Quiet mode: %t\n", status.QuietMode)
-		fmt.Printf("Eco function: %d\n", status.EcoFunction)
-		fmt.Printf("EcoNavi function: %t\n", status.EcoNavi)
-		fmt.Printf("iAutoX: %t\n", status.IautoX)
-		fmt.Printf("NanoeX: %t\n", status.Nanoe)
 		fmt.Println("Current status:")
 		fmt.Printf("Status: %s\n", pt.Operate[status.Parameters.Operate])
-		fmt.Printf("Online: %t\n", status.Parameters.Online)
-		fmt.Printf("Temperature: %0.1f\n", status.Parameters.TemperatureSet)
 		fmt.Printf("Mode: %s\n", pt.ModesReverse[status.Parameters.OperationMode])
+		fmt.Printf("Temperature: %0.1f\n", status.Parameters.TemperatureSet)
+		fmt.Printf("Outside temperature: %0.1f\n", status.Parameters.OutsideTemperature)
+		fmt.Printf("Fan speed: %s\n", pt.FanSpeedReverse[status.Parameters.FanSpeed])
+		fmt.Printf("Eco mode: %s\n", pt.EcoModeReverse[status.Parameters.EcoMode])
 	}
 
 	if *historyFlag != "" {
@@ -150,9 +127,9 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println("#,AverageSettingTemp,AverageInsideTemp,AverageOutsideTemp")
+		fmt.Println("#,AverageSettingTemp,AverageOutsideTemp,Consumption")
 		for _, v := range history.HistoryEntries {
-			fmt.Printf("%v,%v,%v,%v\n", v.DataNumber+1, v.AverageSettingTemp, v.AverageInsideTemp, v.AverageOutsideTemp)
+			fmt.Printf("%v,%v,%v,%v\n", v.DataNumber+1, v.AverageSettingTemp, v.AverageOutsideTemp, v.Consumption)
 		}
 	}
 

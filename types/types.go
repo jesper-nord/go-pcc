@@ -39,10 +39,25 @@ var ModesReverse = map[int]string{
 	4: "fan",
 }
 
+var EcoModeReverse = map[int]string{
+	0: "auto",
+	1: "powerful",
+	2: "quiet",
+}
+
+var FanSpeedReverse = map[int]string{
+	0: "auto",
+	1: "1",
+	2: "2",
+	3: "3",
+	4: "4",
+	5: "5",
+}
+
 // Operate defines if the AC is on or off
 var Operate = map[int]string{
-	0: "Off",
-	1: "On",
+	0: "off",
+	1: "on",
 }
 
 // Session is a login session structure
@@ -136,7 +151,7 @@ type DeviceParameters struct {
 	UpdateTime              int     `json:"updateTime"`
 }
 
-//Device is Panasonic device
+// Device is Panasonic device
 type Device struct {
 	AirSwingLR         bool             `json:"airSwingLR"`
 	AutoMode           bool             `json:"autoMode"`
