@@ -1,7 +1,7 @@
 package types
 
 // HistoryDataMode maps out the time intervals to fetch history data
-var HistoryDataMode = map[string]int{
+var HistoryDataMode = map[string]int64{
 	"day":   0,
 	"week":  1,
 	"month": 2,
@@ -9,7 +9,7 @@ var HistoryDataMode = map[string]int{
 }
 
 // Modes define the different AC modes the device can be in
-var Modes = map[string]int{
+var Modes = map[string]int64{
 	"auto": 0,
 	"dry":  1,
 	"cool": 2,
@@ -18,7 +18,7 @@ var Modes = map[string]int{
 }
 
 // ModesReverse define the different AC modes the device can be in
-var ModesReverse = map[int]string{
+var ModesReverse = map[int64]string{
 	0: "auto",
 	1: "dry",
 	2: "cool",
@@ -26,19 +26,19 @@ var ModesReverse = map[int]string{
 	4: "fan",
 }
 
-var EcoMode = map[string]int{
+var EcoMode = map[string]int64{
 	"auto":     0,
 	"powerful": 1,
 	"quiet":    2,
 }
 
-var EcoModeReverse = map[int]string{
+var EcoModeReverse = map[int64]string{
 	0: "auto",
 	1: "powerful",
 	2: "quiet",
 }
 
-var FanSpeedReverse = map[int]string{
+var FanSpeedReverse = map[int64]string{
 	0: "auto",
 	1: "1",
 	2: "2",
@@ -48,7 +48,7 @@ var FanSpeedReverse = map[int]string{
 }
 
 // Operate defines if the AC is on or off
-var Operate = map[int]string{
+var Operate = map[int64]string{
 	0: "off",
 	1: "on",
 }
@@ -56,19 +56,19 @@ var Operate = map[int]string{
 // Session is a login session structure
 type Session struct {
 	Utoken   string `json:"uToken"`
-	Result   int    `json:"result"`
-	Language int    `json:"language"`
+	Result   int64  `json:"result"`
+	Language int64  `json:"language"`
 }
 
 // Groups is a set of grouped devices
 type Groups struct {
-	GroupCount int     `json:"groupCount"`
+	GroupCount int64   `json:"groupCount"`
 	Groups     []Group `json:"groupList"`
 }
 
 // Group defines a control group with devices
 type Group struct {
-	GroupID   int      `json:"groupId"`
+	GroupID   int64    `json:"groupId"`
 	GroupName string   `json:"groupName"`
 	Devices   []Device `json:"deviceList"`
 }
@@ -79,104 +79,104 @@ type Group struct {
 // 'omitempty' parameter will not cancel out eg operate = 0
 // when sending control commands to the unit
 type DeviceControlParameters struct {
-	ActualNanoe             *int     `json:"actualNanoe,omitempty"`
-	AirDirection            *int     `json:"airDirection,omitempty"`
-	AirQuality              *int     `json:"airQuality,omitempty"`
-	AirSwingLR              *int     `json:"airSwingLR,omitempty"`
-	AirSwingUD              *int     `json:"airSwingUD,omitempty"`
-	Defrosting              *int     `json:"defrosting,omitempty"`
+	ActualNanoe             *int64   `json:"actualNanoe,omitempty"`
+	AirDirection            *int64   `json:"airDirection,omitempty"`
+	AirQuality              *int64   `json:"airQuality,omitempty"`
+	AirSwingLR              *int64   `json:"airSwingLR,omitempty"`
+	AirSwingUD              *int64   `json:"airSwingUD,omitempty"`
+	Defrosting              *int64   `json:"defrosting,omitempty"`
 	DevGUID                 *string  `json:"devGuid,omitempty"`
-	DevRacCommunicateStatus *int     `json:"devRacCommunicateStatus,omitempty"`
-	EcoFunctionData         *int     `json:"ecoFunctionData,omitempty"`
-	EcoMode                 *int     `json:"ecoMode,omitempty"`
-	EcoNavi                 *int     `json:"ecoNavi,omitempty"`
-	Permission              *int     `json:"permission,omitempty"`
-	ErrorCode               *int     `json:"errorCode,omitempty"`
+	DevRacCommunicateStatus *int64   `json:"devRacCommunicateStatus,omitempty"`
+	EcoFunctionData         *int64   `json:"ecoFunctionData,omitempty"`
+	EcoMode                 *int64   `json:"ecoMode,omitempty"`
+	EcoNavi                 *int64   `json:"ecoNavi,omitempty"`
+	Permission              *int64   `json:"permission,omitempty"`
+	ErrorCode               *int64   `json:"errorCode,omitempty"`
 	ErrorCodeStr            *string  `json:"errorCodeStr,omitempty"`
-	ErrorStatus             *int     `json:"errorStatus,omitempty"`
+	ErrorStatus             *int64   `json:"errorStatus,omitempty"`
 	ErrorStatusFlg          *bool    `json:"errorStatusFlg,omitempty"`
-	FanAutoMode             *int     `json:"fanAutoMode,omitempty"`
-	FanSpeed                *int     `json:"fanSpeed,omitempty"`
-	HTTPErrorCode           *int     `json:"httpErrorCode,omitempty"`
-	Iauto                   *int     `json:"iAuto,omitempty"`
+	FanAutoMode             *int64   `json:"fanAutoMode,omitempty"`
+	FanSpeed                *int64   `json:"fanSpeed,omitempty"`
+	HTTPErrorCode           *int64   `json:"httpErrorCode,omitempty"`
+	Iauto                   *int64   `json:"iAuto,omitempty"`
 	InsideTemperature       *float64 `json:"insideTemperature,omitempty"`
-	Nanoe                   *int     `json:"nanoe,omitempty"`
+	Nanoe                   *int64   `json:"nanoe,omitempty"`
 	Online                  *bool    `json:"online,omitempty"`
-	Operate                 *int     `json:"operate,omitempty"`       // Turn on/off
-	OperationMode           *int     `json:"operationMode,omitempty"` // Set Mode (heat, dry, etc)
+	Operate                 *int64   `json:"operate,omitempty"`       // Turn on/off
+	OperationMode           *int64   `json:"operationMode,omitempty"` // Set Mode (heat, dry, etc)
 	OutsideTemperature      *float64 `json:"outTemperature,omitempty"`
 	PowerfulMode            *bool    `json:"powerfulMode,omitempty"`
 	TemperatureSet          *float64 `json:"temperatureSet,omitempty"` // Set Temperature
-	UpdateTime              *int     `json:"updateTime,omitempty"`
+	UpdateTime              *int64   `json:"updateTime,omitempty"`
 }
 
 // DeviceParameters are the current device parameters
 // Used when UnMarshalling current device status
 type DeviceParameters struct {
-	ActualNanoe             int     `json:"actualNanoe"`
-	AirDirection            int     `json:"airDirection"`
-	AirQuality              int     `json:"airQuality"`
-	AirSwingLR              int     `json:"airSwingLR"`
-	AirSwingUD              int     `json:"airSwingUD"`
-	Defrosting              int     `json:"defrosting"`
+	ActualNanoe             int64   `json:"actualNanoe"`
+	AirDirection            int64   `json:"airDirection"`
+	AirQuality              int64   `json:"airQuality"`
+	AirSwingLR              int64   `json:"airSwingLR"`
+	AirSwingUD              int64   `json:"airSwingUD"`
+	Defrosting              int64   `json:"defrosting"`
 	DevGUID                 string  `json:"devGuid"`
-	DevRacCommunicateStatus int     `json:"devRacCommunicateStatus"`
-	EcoFunctionData         int     `json:"ecoFunctionData"`
-	EcoMode                 int     `json:"ecoMode"`
-	EcoNavi                 int     `json:"ecoNavi"`
-	Permission              int     `json:"permission"`
-	ErrorCode               int     `json:"errorCode"`
+	DevRacCommunicateStatus int64   `json:"devRacCommunicateStatus"`
+	EcoFunctionData         int64   `json:"ecoFunctionData"`
+	EcoMode                 int64   `json:"ecoMode"`
+	EcoNavi                 int64   `json:"ecoNavi"`
+	Permission              int64   `json:"permission"`
+	ErrorCode               int64   `json:"errorCode"`
 	ErrorCodeStr            string  `json:"errorCodeStr"`
-	ErrorStatus             int     `json:"errorStatus"`
+	ErrorStatus             int64   `json:"errorStatus"`
 	ErrorStatusFlg          bool    `json:"errorStatusFlg"`
-	FanAutoMode             int     `json:"fanAutoMode"`
-	FanSpeed                int     `json:"fanSpeed"`
-	HTTPErrorCode           int     `json:"httpErrorCode"`
-	Iauto                   int     `json:"iAuto"`
+	FanAutoMode             int64   `json:"fanAutoMode"`
+	FanSpeed                int64   `json:"fanSpeed"`
+	HTTPErrorCode           int64   `json:"httpErrorCode"`
+	Iauto                   int64   `json:"iAuto"`
 	InsideTemperature       float64 `json:"insideTemperature"`
-	Nanoe                   int     `json:"nanoe"`
+	Nanoe                   int64   `json:"nanoe"`
 	Online                  bool    `json:"online"`
-	Operate                 int     `json:"operate"`       // on/off
-	OperationMode           int     `json:"operationMode"` // Mode (heat, dry, etc)
+	Operate                 int64   `json:"operate"`       // on/off
+	OperationMode           int64   `json:"operationMode"` // Mode (heat, dry, etc)
 	OutsideTemperature      float64 `json:"outTemperature"`
 	PowerfulMode            bool    `json:"powerfulMode"`
 	TemperatureSet          float64 `json:"temperatureSet"` // Temperature
-	UpdateTime              int     `json:"updateTime"`
+	UpdateTime              int64   `json:"updateTime"`
 }
 
 // Device is Panasonic device
 type Device struct {
 	AirSwingLR         bool             `json:"airSwingLR"`
 	AutoMode           bool             `json:"autoMode"`
-	AutoTempMax        int              `json:"autoTempMax"`
-	AutoTempMin        int              `json:"autoTempMin"`
+	AutoTempMax        int64            `json:"autoTempMax"`
+	AutoTempMin        int64            `json:"autoTempMin"`
 	CoolMode           bool             `json:"coolMode"`
-	CoolTempMax        int              `json:"coolTeampMax"`
-	CoolTempMin        int              `json:"coolTempMin"`
+	CoolTempMax        int64            `json:"coolTeampMax"`
+	CoolTempMin        int64            `json:"coolTempMin"`
 	DeviceGUID         string           `json:"deviceGuid"`
 	DeviceHashGUID     string           `json:"deviceHashGuid"`
 	DeviceModuleNumber string           `json:"deviceModuleNumber"`
 	DeviceName         string           `json:"deviceName"`
 	DeviceType         string           `json:"deviceType"`
 	DryMode            bool             `json:"dryMode"`
-	DryTempMax         int              `json:"dryTempMax"`
-	DryTempMin         int              `json:"dryTempMin"`
-	EcoFunction        int              `json:"ecoFunction"`
+	DryTempMax         int64            `json:"dryTempMax"`
+	DryTempMin         int64            `json:"dryTempMin"`
+	EcoFunction        int64            `json:"ecoFunction"`
 	EcoNavi            bool             `json:"ecoNavi"`
-	FanDirectionMode   int              `json:"fanDirectionMode"`
+	FanDirectionMode   int64            `json:"fanDirectionMode"`
 	FanMode            bool             `json:"fanMode"`
-	FanSpeedMode       int              `json:"fanSpeedMode"`
+	FanSpeedMode       int64            `json:"fanSpeedMode"`
 	HeatMode           bool             `json:"heatMode"`
-	HeatTempMax        int              `json:"heatTempMax"`
-	HeatTempMin        int              `json:"heatTeampMin"`
+	HeatTempMax        int64            `json:"heatTempMax"`
+	HeatTempMin        int64            `json:"heatTeampMin"`
 	IautoX             bool             `json:"iAutoX"`
 	ModeAvlAutoMode    bool             `json:"modeAvlList.autoMode"`
 	ModeAvlFanMode     bool             `json:"modeAvlList.fanMode"`
 	Nanoe              bool             `json:"nanoe"`
 	QuietMode          bool             `json:"quietMode"`
-	SummerHouse        int              `json:"summerHouse"`
-	TemperatureUnit    int              `json:"temperatureUnit"`
-	TimeStamp          int              `json:"timestamp"`
+	SummerHouse        int64            `json:"summerHouse"`
+	TemperatureUnit    int64            `json:"temperatureUnit"`
+	TimeStamp          int64            `json:"timestamp"`
 	Parameters         DeviceParameters `json:"parameters"`
 }
 
@@ -191,7 +191,7 @@ type History struct {
 
 // HistoryEntry is detailed data for a given day,week,month,year
 type HistoryEntry struct {
-	DataNumber         int     `json:"dataNumber"`
+	DataNumber         int64   `json:"dataNumber"`
 	Consumption        float64 `json:"consumption"`
 	Cost               float64 `json:"cost"`
 	AverageSettingTemp float64 `json:"averageSettingTemp"`

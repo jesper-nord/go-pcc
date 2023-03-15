@@ -19,11 +19,6 @@ type Client struct {
 	Server     string
 }
 
-// intPtr is a helper function that returns a pointer to an int.
-func intPtr(i int) *int {
-	return &i
-}
-
 // SetDevice sets the device GUID on the client.
 func (c *Client) SetDevice(deviceGUID string) {
 	c.DeviceGUID = deviceGUID
@@ -126,7 +121,7 @@ func (c *Client) GetDeviceStatus() (types.Device, error) {
 }
 
 // GetDeviceHistory will fetch historical device data from Panasonic.
-func (c *Client) GetDeviceHistory(timeFrame int) (types.History, error) {
+func (c *Client) GetDeviceHistory(timeFrame int64) (types.History, error) {
 	postBody, _ := json.Marshal(map[string]string{
 		"dataMode":   fmt.Sprint(timeFrame),
 		"date":       time.Now().Format("20060102"),
@@ -162,10 +157,11 @@ func (c *Client) SetTemperature(temperature float64) ([]byte, error) {
 
 // TurnOn will switch the device on.
 func (c *Client) TurnOn() ([]byte, error) {
+	var on int64 = 1
 	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
 		Parameters: types.DeviceControlParameters{
-			Operate: intPtr(1),
+			Operate: &on,
 		},
 	}
 
@@ -174,10 +170,11 @@ func (c *Client) TurnOn() ([]byte, error) {
 
 // TurnOff will switch the device off.
 func (c *Client) TurnOff() ([]byte, error) {
+	var off int64 = 0
 	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
 		Parameters: types.DeviceControlParameters{
-			Operate: intPtr(0),
+			Operate: &off,
 		},
 	}
 
@@ -185,25 +182,25 @@ func (c *Client) TurnOff() ([]byte, error) {
 }
 
 // SetMode will set the device to the requested AC mode.
-func (c *Client) SetMode(mode int) ([]byte, error) {
+func (c *Client) SetMode(mode int64) ([]byte, error) {
 	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
 		Parameters: types.DeviceControlParameters{},
 	}
 
-	command.Parameters.OperationMode = intPtr(mode)
+	command.Parameters.OperationMode = &mode
 
 	return c.control(command)
 }
 
 // SetEcoMode will set the device to the requested eco mode.
-func (c *Client) SetEcoMode(mode int) ([]byte, error) {
+func (c *Client) SetEcoMode(mode int64) ([]byte, error) {
 	command := types.Command{
 		DeviceGUID: c.DeviceGUID,
 		Parameters: types.DeviceControlParameters{},
 	}
 
-	command.Parameters.EcoMode = intPtr(mode)
+	command.Parameters.EcoMode = &mode
 
 	return c.control(command)
 }
