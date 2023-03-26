@@ -38,6 +38,15 @@ var EcoModeReverse = map[int64]string{
 	2: "quiet",
 }
 
+var FanSpeed = map[string]int64{
+	"auto": 0,
+	"1":    1,
+	"2":    2,
+	"3":    3,
+	"4":    4,
+	"5":    5,
+}
+
 var FanSpeedReverse = map[int64]string{
 	0: "auto",
 	1: "1",

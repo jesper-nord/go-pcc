@@ -23,6 +23,7 @@ var (
 	suppressFlag = flag.Bool("suppress", false, "Suppress log messages")
 	statusFlag   = flag.Bool("status", false, "Display current status of device")
 	tempFlag     = flag.Float64("temp", 0, "Set the temperature (in Celsius)")
+	fanSpeedFlag = flag.String("speed", "", "Set fan speed: auto,1,2,3,4,5")
 )
 
 func readConfig() {
@@ -161,6 +162,15 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("temperature set to %v degrees", *tempFlag)
+	}
+
+	if *fanSpeedFlag != "" {
+		log.Infof("setting fan speed to %s", *fanSpeedFlag)
+		_, err := client.SetFanSpeed(types.FanSpeed[*fanSpeedFlag])
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("fan speed set to %s", *fanSpeedFlag)
 	}
 
 	if *modeFlag != "" {

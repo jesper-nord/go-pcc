@@ -155,6 +155,18 @@ func (c *Client) SetTemperature(temperature float64) ([]byte, error) {
 	return c.control(command)
 }
 
+// SetFanSpeed will set the fan speed for a device.
+func (c *Client) SetFanSpeed(fanSpeed int64) ([]byte, error) {
+	command := types.Command{
+		DeviceGUID: c.DeviceGUID,
+		Parameters: types.DeviceControlParameters{
+			FanSpeed: &fanSpeed,
+		},
+	}
+
+	return c.control(command)
+}
+
 // TurnOn will switch the device on.
 func (c *Client) TurnOn() ([]byte, error) {
 	var on int64 = 1
