@@ -36,7 +36,7 @@ func readConfig() {
 }
 
 func main() {
-	log.SetHeader(`${time_rfc3339} | ${level} |>`)
+	log.SetHeader(`${time_rfc3339} ${level} -`)
 
 	if len(os.Args) < 2 {
 		flag.PrintDefaults()
@@ -46,14 +46,13 @@ func main() {
 	flag.Parse()
 
 	log.SetLevel(log.INFO)
-
 	if *suppressFlag {
 		log.SetLevel(log.OFF)
 	}
 
 	if *debugFlag {
 		log.SetLevel(log.DEBUG)
-		log.SetHeader(`${time_rfc3339} | ${level} | ${short_file} |>`)
+		log.SetHeader(`${time_rfc3339} ${level} ${short_file} -`)
 		log.Debug("log set to debug level")
 	}
 
