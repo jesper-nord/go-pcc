@@ -288,7 +288,7 @@ func (c *Client) setHeaders(req *http.Request) {
 		req.Header.Set("X-User-Authorization", c.Utoken)
 	}
 	req.Header.Set("X-APP-TYPE", "1")
-	req.Header.Set("X-APP-VERSION", "1.19.0")
+	req.Header.Set("X-APP-VERSION", "1.20.0")
 	req.Header.Set("X-APP-TIMESTAMP", "1")
 	req.Header.Set("X-APP-NAME", "Comfort Cloud")
 	req.Header.Set("X-CFC-API-KEY", "Comfort Cloud")
