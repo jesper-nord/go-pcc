@@ -52,8 +52,8 @@ func (c *Client) ValidateSession(token string) ([]byte, error) {
 
 // CreateSession initialises a client session to Panasonic Comfort Cloud.
 func (c *Client) CreateSession(username string, password string) ([]byte, error) {
-	postBody, _ := json.Marshal(map[string]string{
-		"language": "0",
+	postBody, _ := json.Marshal(map[string]any{
+		"language": 0,
 		"loginId":  username,
 		"password": password,
 	})
